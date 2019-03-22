@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: reptiles-server
+  redis:
+    host: 192.168.1.24
+    port: 6379
+
+server:
+  port: 9090
