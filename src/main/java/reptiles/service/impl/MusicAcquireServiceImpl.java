@@ -7,17 +7,13 @@ import org.jsoup.select.Elements;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import reptiles.dao.MusicDao;
 import reptiles.service.MusicAcquireService;
 
 import javax.annotation.Resource;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -29,8 +25,13 @@ import java.nio.channels.ReadableByteChannel;
 @Service
 public class MusicAcquireServiceImpl implements MusicAcquireService {
 
-    private static String searchHtml = "http://sou.kuwo.cn/ws/NSearch?type=all&catalog=yueku2016&key={1}";
-    private static String getXML = "http://player.kuwo.cn/webmusic/st/getNewMuiseByRid?rid=MUSIC_";
+    private static String searchHtml;
+    private static String getXML;
+
+    static {
+        searchHtml = "http://sou.kuwo.cn/ws/NSearch?type=all&catalog=yueku2016&key={1}";
+        getXML = "http://player.kuwo.cn/webmusic/st/getNewMuiseByRid?rid=MUSIC_";
+    }
 
     @Resource
     RestTemplate restTemplate;
@@ -48,21 +49,23 @@ public class MusicAcquireServiceImpl implements MusicAcquireService {
         String mp3dlStr = xml.getElementsByTag("mp3dl").text();
         String mp3pathStr = xml.getElementsByTag("mp3path").text();
 
-        String musicName = xml.getElementsByTag("name").text();
-
-
-        System.out.println(musicName);
-
+        String name = xml.getElementsByTag("name").text();
         String singer = xml.getElementsByTag("singer").text();
-        String singerName = new String(singer.getBytes(), "UTF-8");
-        System.out.println(singerName);
 
-        musicName = musicName + " - " + singerName;
+        String musicName = name + " - " + singer;
         String filePath = "http://" + mp3dlStr + "/resource/" + mp3pathStr;
 
-        this.outputMusic(filePath, musicName);
+//        MusicEntity musicEntity = new MusicEntity();
+//        musicEntity.setCreateTime(new Date());
+//        musicEntity.setSinger(singer);
+//        musicEntity.setMusic(name);
+//        musicEntity.setSongUrl(filePath);
+//        musicEntity.setMusicId(musicId);
+//
+//        musicDao.save(musicEntity);
 
-        return musicName + " 下载成功！";
+        this.outputMusic(filePath, musicName); // 通过NIO下载到本地
+        return "获取:\t" + musicName;
 
     }
 
@@ -111,7 +114,6 @@ public class MusicAcquireServiceImpl implements MusicAcquireService {
         FileChannel fileChannel = outputStream.getChannel();
         fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
 
-
         // 使用普通IO流下载文件
 
 //        URL url = new URL(filePath);
@@ -129,20 +131,7 @@ public class MusicAcquireServiceImpl implements MusicAcquireService {
 //        outputStream.flush();
 //        outputStream.close();
 //        inputStream.close();
-        System.out.println("下载了" + musicName);
-
     }
 
-//    public static void main(String[] args) throws IOException {
-//
-//        String imagePath = "https://ss0.baidu.com/6ONWsjip0QIZ8tyhnq/it/u=1145926647,2815583181&fm=85&app=63&f=JPEG?w=120&h=75&s=0EE3EC169CD0FE92F6D899E00300B031";
-//        URL url = new URL(imagePath);
-//        URLConnection connection = url.openConnection();
-//        connection.setDoOutput(true);
-//        BufferedImage image = ImageIO.read(connection.getInputStream());
-//        int srcWidth = image .getWidth();      // 源图宽度
-//        int srcHeight = image .getHeight();    // 源图高度
-//
-//
-//    }
+
 }
