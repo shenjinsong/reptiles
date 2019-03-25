@@ -1,10 +1,12 @@
 package reptiles.service;
 
 /**
+ * 酷我音乐抓取
+ *
  * @Auther: 大叔
  * @Time: 2019/3/14 15:55
  */
-public interface MusicAcquireService {
+public interface KuwoMusicAcquireService {
 
 
     /**

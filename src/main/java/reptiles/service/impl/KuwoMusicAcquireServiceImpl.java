@@ -12,10 +12,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import reptiles.dao.MusicDao;
 import reptiles.pojo.MusicEntity;
-import reptiles.service.MusicAcquireService;
+import reptiles.service.KuwoMusicAcquireService;
 
 import javax.annotation.Resource;
-import javax.jws.WebResult;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -30,7 +29,7 @@ import java.util.regex.Pattern;
  * @Time: 2019/3/15 10:44
  */
 @Service
-public class MusicAcquireServiceImpl implements MusicAcquireService {
+public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
 
     private static String searchHtml;
     private static String getXML;
@@ -154,26 +153,30 @@ public class MusicAcquireServiceImpl implements MusicAcquireService {
     @Override
     public Object getListByPid(String pid) {
 
-        ResponseEntity<String> response = restTemplate.getForEntity(list4Pid, String.class, pid);
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(list4Pid, String.class, pid);
+        Elements elements = this.selectResult(responseEntity);
 
         return null;
+    }
+
+    private Elements selectResult(ResponseEntity<String> responseEntity) {
+
+        String body = responseEntity.getBody();
+
+        assert body != null;
+        Document html = Jsoup.parse(body);
+        Elements elements = html.getElementsByClass("listMusic");
+        Element element = elements.get(0);
+        return element.getElementsByAttribute("data-music");
+
     }
 
     @Override
     public void List4Rank(String name, String bangId) {
 
-//        String url = "http://www.kuwo.cn/bang/content?name=" + name + "&bangId=" + bangId;
-        ResponseEntity<String> response = restTemplate.getForEntity(list4Rank, String.class, name, bangId);
-        String body = response.getBody();
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(list4Rank, String.class, name, bangId);
 
-        assert body != null;
-        Document html = Jsoup.parse(body);
-
-        Elements elements = html.getElementsByClass("listMusic");
-        Element element = elements.get(0);
-
-        Elements dataMusics = element.getElementsByAttribute("data-music");
-        for (Element music : dataMusics) {
+        for (Element music : this.selectResult(responseEntity)) {
 
             String jsonStr = music.attr("data-music");
             JSONObject jsonObject = JSON.parseObject(jsonStr);

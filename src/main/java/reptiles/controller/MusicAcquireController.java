@@ -2,7 +2,7 @@ package reptiles.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reptiles.service.MusicAcquireService;
+import reptiles.service.KuwoMusicAcquireService;
 
 import javax.annotation.Resource;
 
@@ -14,7 +14,7 @@ import javax.annotation.Resource;
 public class MusicAcquireController {
 
     @Resource
-    MusicAcquireService musicAcquireService;
+    KuwoMusicAcquireService musicAcquireService;
 
     @GetMapping("/search")
     public Object search(String musicName, String singerName) {
