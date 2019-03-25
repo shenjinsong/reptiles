@@ -17,7 +17,9 @@ import reptiles.service.KuwoMusicAcquireService;
 import javax.annotation.Resource;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -50,7 +52,7 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
     RestTemplate restTemplate;
 
     @Override
-    public Object getMusicByMusicId(String musicId) {
+    public Object getMusicByMusicId(String musicId){
 
         ResponseEntity<String> responseXML = restTemplate.getForEntity(getXML, String.class, musicId);
         if (responseXML.getBody() == null || responseXML.getBody().length() == 0) {
@@ -81,7 +83,11 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
         MusicEntity music = musicDao.save(musicEntity);
         System.out.println("获取:\t" + JSON.toJSONString(music));
 
-//        this.outputMusic(filePath, musicName); // 通过NIO下载到本地
+//        try {
+//            this.outputMusic(filePath, musicName); // 通过NIO下载到本地
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         return "获取:\t" + musicName;
 
@@ -132,7 +138,6 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
         fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
 
         // 使用普通IO流下载文件
-
 //        URL url = new URL(filePath);
 //
 //        URLConnection conn = url.openConnection();
@@ -154,8 +159,7 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
     public Object getListByPid(String pid) {
 
         ResponseEntity<String> responseEntity = restTemplate.getForEntity(list4Pid, String.class, pid);
-        Elements elements = this.selectResult(responseEntity);
-
+        this.save2DB(this.selectResult(responseEntity));
         return null;
     }
 
@@ -171,20 +175,13 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
 
     }
 
+    private void save2DB(Elements elements) {
+        elements.stream().map(music -> music.attr("data-music")).map(JSON::parseObject).map(jsonObject -> Pattern.compile("MUSIC_").matcher(jsonObject.getString("id")).replaceAll("")).forEachOrdered(this::getMusicByMusicId);
+    }
+
     @Override
     public void List4Rank(String name, String bangId) {
-
         ResponseEntity<String> responseEntity = restTemplate.getForEntity(list4Rank, String.class, name, bangId);
-
-        for (Element music : this.selectResult(responseEntity)) {
-
-            String jsonStr = music.attr("data-music");
-            JSONObject jsonObject = JSON.parseObject(jsonStr);
-            String musicId = Pattern.compile("MUSIC_").matcher(jsonObject.getString("id")).replaceAll("");
-
-            this.getMusicByMusicId(musicId);
-
-        }
-
+        this.save2DB(this.selectResult(responseEntity));
     }
 }
