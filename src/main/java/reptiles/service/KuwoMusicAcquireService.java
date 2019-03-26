@@ -12,6 +12,12 @@ public interface KuwoMusicAcquireService {
 
 
     /**
+     * 搜索歌手
+     * @param singer
+     */
+    void searchSinger(String singer);
+
+    /**
      * 搜索音乐名称
      * @param searchMusicName
      * @param searchSingerName

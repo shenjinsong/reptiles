@@ -1,13 +1,15 @@
 package reptiles.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import reptiles.dao.MusicDao;
@@ -17,13 +19,14 @@ import reptiles.service.KuwoMusicAcquireService;
 import javax.annotation.Resource;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
@@ -33,26 +36,52 @@ import java.util.regex.Pattern;
 @Service
 public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
 
-    private static String searchHtml;
-    private static String getXML;
-    private static String list4Pid;
-    private static String list4Rank;
+    private static String searchMusic, getXML, list4Pid, list4Rank, searchSinger, pageRequest;
+    private static Long pageSize;
 
     static {
-        searchHtml = "http://sou.kuwo.cn/ws/NSearch?type=all&catalog=yueku2016&key={1}";
+        pageSize = 20L;
+        searchMusic = "http://sou.kuwo.cn/ws/NSearch?type=all&catalog=yueku2016&key={1}";
         getXML = "http://player.kuwo.cn/webmusic/st/getNewMuiseByRid?rid=MUSIC_{1}";
         list4Pid = "http://www.kuwo.cn/playlist/content?pid={1}";
         list4Rank = "http://www.kuwo.cn/bang/content?name={1}&bangId={2}";
+        searchSinger = "http://www.kuwo.cn/artist/content?name={1}";
+        pageRequest = "http://www.kuwo.cn/artist/contentMusicsAjax?artistId={artistId}&pn={pageNum}&rn={pageSize}";
     }
 
     @Resource
-    MusicDao musicDao;
+    private MusicDao musicDao;
 
     @Resource
-    RestTemplate restTemplate;
+    private RestTemplate restTemplate;
 
     @Override
-    public Object getMusicByMusicId(String musicId){
+    public void searchSinger(String singer) {
+        ResponseEntity<String> entity = restTemplate.getForEntity(searchSinger, String.class, singer);
+        String body = entity.getBody();
+        if (body == null) return;
+        Document document = Jsoup.parse(body);
+
+        String artistId = document.getElementsByAttribute("data-artistid").attr("data-artistid");  // 歌手Id
+        Elements listMusic = document.getElementsByClass("listMusic");
+        String pageSize = listMusic.attr("data-rn"); // 每页数量
+        String pageTotal = listMusic.attr("data-page"); // 总页数
+
+        Long total = Long.valueOf(pageSize) * Long.valueOf(pageTotal);
+
+        int pageNum = 1;
+        Map<String, Object> map = new HashMap<>();
+        map.put("artistId", artistId);
+        map.put("pageSize", this.pageSize);
+
+        while ((pageNum - 1) * this.pageSize < total) {
+            map.put("pageNum", pageNum++ - 1);
+            this.save2DB(this.selectResult(restTemplate.getForEntity(pageRequest, String.class, map).getBody()));
+        }
+    }
+
+    @Override
+    public Object getMusicByMusicId(String musicId) {
 
         ResponseEntity<String> responseXML = restTemplate.getForEntity(getXML, String.class, musicId);
         if (responseXML.getBody() == null || responseXML.getBody().length() == 0) {
@@ -97,7 +126,7 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
     public Object searchMusic(String searchMusicName, String searchSingerName) {
 
 
-        ResponseEntity<String> entity = restTemplate.getForEntity(searchHtml, String.class, searchMusicName);
+        ResponseEntity<String> entity = restTemplate.getForEntity(searchMusic, String.class, searchMusicName);
         String body = entity.getBody();
         if (body == null || body.length() == 0) {
             return "未查询到" + searchMusicName;
@@ -159,15 +188,13 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
     public Object getListByPid(String pid) {
 
         ResponseEntity<String> responseEntity = restTemplate.getForEntity(list4Pid, String.class, pid);
-        this.save2DB(this.selectResult(responseEntity));
+        this.save2DB(this.selectResult(responseEntity.getBody()));
         return null;
     }
 
-    private Elements selectResult(ResponseEntity<String> responseEntity) {
+    private Elements selectResult(String body) {
 
-        String body = responseEntity.getBody();
-
-        assert body != null;
+        Assert.notNull(body, "body is null !");
         Document html = Jsoup.parse(body);
         Elements elements = html.getElementsByClass("listMusic");
         Element element = elements.get(0);
@@ -175,13 +202,16 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
 
     }
 
+
     private void save2DB(Elements elements) {
-        elements.stream().map(music -> music.attr("data-music")).map(JSON::parseObject).map(jsonObject -> Pattern.compile("MUSIC_").matcher(jsonObject.getString("id")).replaceAll("")).forEachOrdered(this::getMusicByMusicId);
+        synchronized (UUID.randomUUID()){
+            elements.stream().map(music -> music.attr("data-music")).map(JSON::parseObject).map(jsonObject -> Pattern.compile("MUSIC_").matcher(jsonObject.getString("id")).replaceAll("")).forEachOrdered(this::getMusicByMusicId);
+        }
     }
 
     @Override
     public void List4Rank(String name, String bangId) {
         ResponseEntity<String> responseEntity = restTemplate.getForEntity(list4Rank, String.class, name, bangId);
-        this.save2DB(this.selectResult(responseEntity));
+        this.save2DB(this.selectResult(responseEntity.getBody()));
     }
 }

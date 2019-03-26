@@ -1,6 +1,7 @@
 package reptiles.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import reptiles.service.KuwoMusicAcquireService;
 
@@ -16,8 +17,8 @@ public class MusicAcquireController {
     @Resource
     KuwoMusicAcquireService musicAcquireService;
 
-    @GetMapping("/search")
-    public Object search(String musicName, String singerName) {
+    @GetMapping("/music")
+    public Object searchMusic(String musicName, String singerName) {
         return musicAcquireService.searchMusic(musicName, singerName);
     }
 
@@ -27,12 +28,17 @@ public class MusicAcquireController {
     }
 
     @GetMapping("/rankList")
-    public void reptiles(String name, String bangId) {
+    public void List4Rank(String name, String bangId) {
         musicAcquireService.List4Rank(name, bangId);
     }
 
-    @GetMapping("/choiceness")
-    public void choiceness(String pid){
+    @GetMapping("/selection")
+    public void selection(String pid){
         musicAcquireService.getListByPid(pid);
+    }
+
+    @GetMapping("/singer/{name}")
+    public void searchSinger(@PathVariable("name") String name){
+        musicAcquireService.searchSinger(name);
     }
 }
