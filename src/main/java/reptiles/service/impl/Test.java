@@ -37,7 +37,8 @@ public class Test {
         Elements div = document.select("div [ class = m_list clearfix ]");
         Elements li = div.select("li");
 
-        for (Element element : li) {
+//        Element element = li.get(0); // 取第一条
+        for (Element element : li) { // 下载所有名称相同的music
 
             Elements input = element.getElementsByTag("input");
 
@@ -61,13 +62,11 @@ public class Test {
 
             // 使用NIO下载网络文件
             ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(filePath).openStream());
-            FileOutputStream outputStream = new FileOutputStream("C:/Users/Administrator/Desktop/Musics/" + musicName + ".mp3");
+            FileOutputStream outputStream = new FileOutputStream("C:/Users/Administrator/Desktop/" + musicName + ".mp3");
             FileChannel fileChannel = outputStream.getChannel();
             fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
 
 
         }
-
-
     }
 }
