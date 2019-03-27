@@ -20,5 +20,5 @@ spring:
     database: mysql
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     open-in-view: false

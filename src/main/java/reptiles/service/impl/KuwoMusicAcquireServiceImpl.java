@@ -5,8 +5,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -67,7 +65,7 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
         String pageSize = listMusic.attr("data-rn"); // 每页数量
         String pageTotal = listMusic.attr("data-page"); // 总页数
 
-        Long total = Long.valueOf(pageSize) * Long.valueOf(pageTotal);
+        long total = Long.valueOf(pageSize) * Long.valueOf(pageTotal);
 
         int pageNum = 1;
         Map<String, Object> map = new HashMap<>();
