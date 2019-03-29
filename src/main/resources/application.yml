@@ -15,10 +15,12 @@ spring:
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.zaxxer.hikari.HikariDataSource
-
   jpa:
     database: mysql
-    show-sql: true
+    open-in-view: false
     hibernate:
       ddl-auto: none
-    open-in-view: false
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
