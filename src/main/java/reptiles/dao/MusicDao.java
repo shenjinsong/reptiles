@@ -5,12 +5,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import reptiles.pojo.MusicEntity;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 /**
  * @Auther: 大叔
  * @Time: 2019/3/25 14:30
  */
+@Transactional
 public interface MusicDao extends JpaRepository<MusicEntity, Long> {
 
     List<MusicEntity> queryMusicEntitiesByMusic(String music);
@@ -21,10 +23,12 @@ public interface MusicDao extends JpaRepository<MusicEntity, Long> {
 
     MusicEntity getFirstBySinger(String singer);
 
-    @Query(value = "select `id`,music_id,song_url,singer,music,create_time from  t_music where  singer = ?1 and music = ?2 limit 1", nativeQuery = true)
+    @Query(value = "select * from  t_music where  singer = ?1 and music = ?2 limit 1", nativeQuery = true)
     MusicEntity selectBySql(String singer,  String music);
 
 //    @Query(value = "select id,music_id,song_url,singer,music,create_time from  t_music where  singer = :singer and music = :music ", nativeQuery = true)
 //    MusicEntity selectBySql(@Param("singer") String singer, @Param("music") String music);
 
+    @Query(value = "select * from t_music where id = :id", nativeQuery = true)
+    MusicEntity queryById(@Param("id") Long id);
 }

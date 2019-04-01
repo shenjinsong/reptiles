@@ -34,4 +34,7 @@ public class MusicEntity implements Serializable {
 
     @Column(name = "create_time")
     private Date createTime;
+
+    @Version
+    private Long version;
 }

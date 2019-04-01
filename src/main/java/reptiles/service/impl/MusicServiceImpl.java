@@ -3,10 +3,10 @@ package reptiles.service.impl;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 import reptiles.dao.MusicDao;
 import reptiles.pojo.MusicEntity;
+import reptiles.service.MusicService;
 
 import javax.annotation.Resource;
 
