@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -32,9 +33,29 @@ public class MusicEntity implements Serializable {
     @Column(name = "music")
     private String music;
 
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "create_time")
     private Date createTime;
 
+    @Transient //此注解表示不保存到db
+    @Temporal(TemporalType.DATE)
+    private Calendar updateDate;
+
     @Version
     private Long version;
+
+
+
+    @Override
+    public String toString() {
+        return "MusicEntity{" +
+                "Id=" + Id +
+                ", musicId='" + musicId + '\'' +
+                ", songUrl='" + songUrl + '\'' +
+                ", singer='" + singer + '\'' +
+                ", music='" + music + '\'' +
+                ", createTime=" + createTime +
+                ", version=" + version +
+                '}';
+    }
 }

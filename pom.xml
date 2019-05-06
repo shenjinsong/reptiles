@@ -59,6 +59,11 @@
 			<artifactId>jsoup</artifactId>
 			<version>1.11.3</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.wenhao</groupId>
+			<artifactId>jpa-spec</artifactId>
+			<version>2.2.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>

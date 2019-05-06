@@ -1,4 +1,4 @@
-package reptiles.service.impl;
+package reptiles;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
