@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.transaction.annotation.Transactional;
 import reptiles.ReptilesApplication;
 import reptiles.dao.MusicDao;
 import reptiles.pojo.MusicEntity;
@@ -16,7 +17,6 @@ import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.Predicate;
-import javax.transaction.Transactional;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -30,11 +30,11 @@ import java.util.Optional;
 @SpringBootTest(classes = ReptilesApplication.class)
 public class JpaTest {
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Resource
     private MusicDao musicDao;
-
-    @PersistenceContext(name = "musicEntity")
-    private EntityManager entityManager;
 
     /**
      * 新增
@@ -57,9 +57,15 @@ public class JpaTest {
     @Test
     public void test1() {
 
-        Optional<MusicEntity> optional = musicDao.findById(611L);
-        MusicEntity entity = optional.get();
-        entity.setCreateTime(new Date());
+//        Optional<MusicEntity> optional = musicDao.findById(611L);
+//        MusicEntity entity = optional.get();
+
+        // getOne() 是懒加载
+        MusicEntity entity = musicDao.getOne(2183L);
+//        MusicEntity entity = musicDao.queryById(2183L);
+        System.out.println(entity.toString());
+
+        entity.setCreateTime(null);
         MusicEntity muisc = musicDao.save(entity);
         System.out.println(muisc.toString());
 
@@ -159,8 +165,16 @@ public class JpaTest {
 
     }
 
+
     @Test
+    @Transactional
     public void test5(){
+
+        MusicEntity music = musicDao.queryById(611L);
+        entityManager.persist(music);
+        music.setCreateTime(new Date());
+        boolean contains = entityManager.contains(music);
+
 
     }
 
