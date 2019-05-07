@@ -13,7 +13,10 @@ import reptiles.dao.MusicDao;
 import reptiles.pojo.MusicEntity;
 
 import javax.annotation.Resource;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.Predicate;
+import javax.transaction.Transactional;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -29,6 +32,9 @@ public class JpaTest {
 
     @Resource
     private MusicDao musicDao;
+
+    @PersistenceContext(name = "musicEntity")
+    private EntityManager entityManager;
 
     /**
      * 新增
@@ -51,7 +57,7 @@ public class JpaTest {
     @Test
     public void test1() {
 
-        Optional<MusicEntity> optional = musicDao.findById(2181L);
+        Optional<MusicEntity> optional = musicDao.findById(611L);
         MusicEntity entity = optional.get();
         entity.setCreateTime(new Date());
         MusicEntity muisc = musicDao.save(entity);
@@ -89,11 +95,14 @@ public class JpaTest {
 
         long count = musicDao.count();
 
-
+        // findAll 方法
         MusicEntity mEx = new MusicEntity();
         mEx.setMusic("下雪的季节");
         Example<MusicEntity> example = Example.of(mEx);
         List<MusicEntity> all = musicDao.findAll(example);
+
+        // Page 分页
+        Page<MusicEntity> musicLists = musicDao.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createTime")));
 
         // Specification from <jpa-spec>
         Specification<MusicEntity> specification = new Specifications<MusicEntity>()
@@ -103,6 +112,7 @@ public class JpaTest {
         List<MusicEntity> list1 = musicDao.findAll(specification);
 
     }
+
 
     /**
      * 使用
@@ -133,12 +143,25 @@ public class JpaTest {
     }
 
     /**
-     * 使用spring data 分页、排序
+     * EntityManager 使用
+     *      set 方法更新
+     *
      */
     @Test
-    public void test4() {
-//        Sort sort = new Sort(Sort.Direction.DESC, "createTime");
-        Page<MusicEntity> musicList = musicDao.findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createTime")));
+    @Transactional
+    public void test4(){
+
+        MusicEntity music = musicDao.getOne(611L);
+        System.out.println(music.toString());
+
+        entityManager.persist(music);
+        music.setCreateTime(new Date());
+
+    }
+
+    @Test
+    public void test5(){
+
     }
 
 }
