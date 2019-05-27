@@ -1,3 +1,5 @@
+package reptiles;
+
 import com.github.wenhao.jpa.Specifications;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -145,36 +147,6 @@ public class JpaTest {
             return criteriaBuilder.and(predicates.toArray(predicate));
 
         }, pageRequest);
-
-    }
-
-    /**
-     * EntityManager 使用
-     *      set 方法更新
-     *
-     */
-    @Test
-    @Transactional
-    public void test4(){
-
-        MusicEntity music = musicDao.getOne(611L);
-        System.out.println(music.toString());
-
-        entityManager.persist(music);
-        music.setCreateTime(new Date());
-
-    }
-
-
-    @Test
-    @Transactional
-    public void test5(){
-
-        MusicEntity music = musicDao.queryById(611L);
-        entityManager.persist(music);
-        music.setCreateTime(new Date());
-        boolean contains = entityManager.contains(music);
-
 
     }
 
