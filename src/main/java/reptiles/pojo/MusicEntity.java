@@ -21,7 +21,7 @@ public class MusicEntity implements Serializable {
     @Column(name = "id")
     private Long Id;
 
-    @Column(name = "music_id")
+    @Column(name = "music_id", unique = true, nullable = false, columnDefinition = "varchar(32) comment 'musicID'")
     private String musicId;
 
     @Column(name = "song_url")
@@ -30,7 +30,7 @@ public class MusicEntity implements Serializable {
     @Column(name = "singer")
     private String singer;
 
-    @Column(name = "music")
+    @Column(name = "music", length = 32)
     private String music;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -43,7 +43,6 @@ public class MusicEntity implements Serializable {
 
     @Version
     private Long version;
-
 
 
     @Override
