@@ -1,5 +1,6 @@
 package reptiles.dao;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +10,7 @@ import reptiles.pojo.MusicEntity;
 import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @Auther: 大叔
@@ -19,7 +21,11 @@ public interface MusicDao extends JpaRepository<MusicEntity, Long>, JpaSpecifica
 
     List<MusicEntity> queryByMusic(String music);
 
+    List<MusicEntity> queryByMusic(String music, Sort sort);
+
     MusicEntity getFirstBySinger(String singer);
+
+    Stream<MusicEntity> queryBySinger(String singer);
 
     @Query(value = "select * from  t_music where  singer = ?1 and music = ?2 limit 1", nativeQuery = true)
     MusicEntity selectBySql(String singer, String music);

@@ -150,4 +150,9 @@ public class JpaTest {
 
     }
 
+    @Test
+    public void  test4(){
+        List<MusicEntity> list = musicDao.queryByMusic("123", Sort.by(Sort.Direction.DESC, "createTime"));
+    }
+
 }
