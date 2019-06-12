@@ -3,10 +3,12 @@ package reptiles.dao;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import reptiles.pojo.MusicEntity;
 
+import javax.persistence.LockModeType;
 import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +23,7 @@ public interface MusicDao extends JpaRepository<MusicEntity, Long>, JpaSpecifica
 
     List<MusicEntity> queryByMusic(String music);
 
+    @Lock(LockModeType.READ)
     List<MusicEntity> queryByMusic(String music, Sort sort);
 
     MusicEntity getFirstBySinger(String singer);
