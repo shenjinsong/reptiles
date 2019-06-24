@@ -5,9 +5,9 @@ spring:
   application:
     name: reptiles-server
 
-#  redis:
-#    host: 192.168.1.24
-#    port: 6379
+  redis:
+    host: 192.168.1.24
+    port: 6379
 
   datasource:
     url: jdbc:mysql://192.168.1.2:3306/public?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
