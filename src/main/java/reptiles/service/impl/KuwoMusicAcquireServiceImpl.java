@@ -10,14 +10,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import reptiles.dao.MusicDao;
 import reptiles.pojo.MusicEntity;
 import reptiles.service.KuwoMusicAcquireService;
 
 import javax.annotation.Resource;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
@@ -155,6 +160,26 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
 
         return getMusicByMusicId(musicId);
     }
+
+    public static void main(String[] args) {
+
+       String fileUrl = "https://www.cnblogs.com/skins/codinglife/images/title-yellow.png";
+
+        URL url = null;
+        HttpURLConnection conn = null;
+        try {
+            url = new URL(fileUrl);
+            conn = (HttpURLConnection) url.openConnection();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        long contentLengthLong = conn.getContentLengthLong();
+        int contentLength = conn.getContentLength();
+
+
+    }
+
 
     private void outputMusic(String filePath, String musicName) throws IOException {
 
