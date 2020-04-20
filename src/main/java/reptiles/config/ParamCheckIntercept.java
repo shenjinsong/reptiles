@@ -51,13 +51,13 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         Annotation[][] parameterAnnotationArrays = method.getParameterAnnotations();
 
         // 判断请求参数是否是请求体传过来
-        boolean isRequestBoby = false;
+        boolean isRequestBody = false;
         query:
         for (Annotation[] parameterAnnotation : parameterAnnotationArrays) {
             for (Annotation annotation : parameterAnnotation) {
                 Class<? extends Annotation> aClass = annotation.annotationType();
-                isRequestBoby = RequestBody.class.equals(aClass);
-                if (isRequestBoby) {
+                isRequestBody = RequestBody.class.equals(aClass);
+                if (isRequestBody) {
                     break query;
                 }
             }
@@ -67,10 +67,11 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         ServletRequest servletRequest = new RequestReaderHttpServletRequestWrapper(request);
 
         // 检查参数
-        boolean checkSuccess = this.checkReqParams(paramCheck, servletRequest, isRequestBoby);
+        boolean checkSuccess = this.checkReqParams(paramCheck, servletRequest, isRequestBody);
 
         if (!checkSuccess) {
             log.info("缺少必要的参数");
+            // TODO 缺失必要参数时可记录接口...
             this.responseOut(response);
             return false;
         }
@@ -80,11 +81,11 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
     }
 
 
-    private boolean checkReqParams(ParamCheck paramCheck, ServletRequest request, boolean isRequestBoby) {
+    private boolean checkReqParams(ParamCheck paramCheck, ServletRequest request, boolean isRequestBody) {
 
         log.info("校验的参数：" + JSON.toJSONString(paramCheck.value()));
         // 链接中包含参数，和请求体中参数校验过程
-        if (isRequestBoby) {
+        if (isRequestBody) {
             return this.checkReqBodyParams(paramCheck, request);
         } else {
             return Arrays.stream(paramCheck.value()).map(request::getParameter).noneMatch(ParamCheckIntercept::invalid);
