@@ -110,11 +110,11 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
         MusicEntity music = musicDao.save(musicEntity);
         System.out.println("获取:\t" + JSON.toJSONString(music));
 
-//        try {
-//            this.outputMusic(filePath, musicName); // 通过NIO下载到本地
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            this.outputMusic(filePath, musicName); // 通过NIO下载到本地
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return "获取:\t" + musicName;
 
@@ -160,7 +160,7 @@ public class KuwoMusicAcquireServiceImpl implements KuwoMusicAcquireService {
 
         // 使用NIO下载网络文件
         ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(filePath).openStream());
-        FileOutputStream outputStream = new FileOutputStream("C:/Users/Administrator/Desktop/Musics/" + musicName + ".mp3");
+        FileOutputStream outputStream = new FileOutputStream("C:/Users/Administrator/Desktop/" + musicName + ".mp3");
         FileChannel fileChannel = outputStream.getChannel();
         fileChannel.transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
 
