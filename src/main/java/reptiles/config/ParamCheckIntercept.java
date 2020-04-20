@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
+    private String requestParams = "";
 
     private static Pattern pattern = Pattern.compile("null|undefined");
 
@@ -88,6 +89,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         if (isRequestBody) {
             return this.checkReqBodyParams(paramCheck, request);
         } else {
+            requestParams = JSON.toJSONString(request.getParameterMap());
             return Arrays.stream(paramCheck.value()).map(request::getParameter).noneMatch(ParamCheckIntercept::invalid);
         }
     }
@@ -102,10 +104,9 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
             // 将请求中的请求体通过流读成字符
-            String sb = bufferedReader.lines().collect(Collectors.joining());
-
+            requestParams = bufferedReader.lines().collect(Collectors.joining());
             // 传入的json数据序列化为Json对象
-            jsonObject = JSONObject.parseObject(sb);
+            jsonObject = JSONObject.parseObject(requestParams);
 
         } catch (Exception e) {
             e.printStackTrace();
