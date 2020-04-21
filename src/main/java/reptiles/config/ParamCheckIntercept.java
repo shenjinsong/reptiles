@@ -138,7 +138,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         log.info("参数类型：" + obj.getClass());
 
         // 校验参数 (null，undefined)
-        return pattern.matcher(requestParams.toLowerCase()).find();
+        return pattern.matcher(JSON.toJSONString(obj).toLowerCase()).find();
     }
 
     /**
