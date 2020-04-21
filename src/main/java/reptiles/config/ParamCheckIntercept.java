@@ -72,7 +72,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
         if (!checkSuccess) {
             log.info("缺少必要的参数");
-            // TODO 缺失必要参数时可记录接口...
+            this.recordErrMsg();
             this.responseOut(response);
             return false;
         }
@@ -161,4 +161,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         out.close();
     }
 
+    private void recordErrMsg(){
+        // TODO 记录错误信息
+    }
 }
