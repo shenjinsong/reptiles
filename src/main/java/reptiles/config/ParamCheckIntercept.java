@@ -37,7 +37,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
     private static Pattern pattern = Pattern.compile("null|undefined");
 
-    private String requestParams = "";
+    private static String requestParams = "";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -138,7 +138,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         log.info("参数类型：" + obj.getClass());
 
         // 校验参数 (null，undefined)
-        return pattern.matcher(JSON.toJSONString(obj).toLowerCase()).find();
+        return pattern.matcher(requestParams.toLowerCase()).find();
     }
 
     /**

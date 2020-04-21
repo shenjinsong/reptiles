@@ -27,11 +27,13 @@ public class MusicController {
         return musicService.findOneBySinger(singer);
     }
 
+    @ParamCheck("music")
     @GetMapping("/music/find")
     public Object music(String music){
         return musicService.findByMusic(music);
     }
 
+    @ParamCheck("str")
     @GetMapping("/find")
     public Object find(String str){
         return musicDao.getFirstBySinger(str);
