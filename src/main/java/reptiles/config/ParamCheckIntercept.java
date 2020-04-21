@@ -34,9 +34,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
-    private String requestParams = "";
 
     private static Pattern pattern = Pattern.compile("null|undefined");
+
+    private String requestParams = "";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
