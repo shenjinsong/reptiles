@@ -37,7 +37,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
     private static Pattern pattern = Pattern.compile("null|undefined");
 
-    private static String requestParams = "";
+    private String requestParams = "";
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -162,7 +162,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         out.close();
     }
 
-    private void recordErrMsg(){
+    private void recordErrMsg() {
         // TODO 记录错误信息
     }
 }
