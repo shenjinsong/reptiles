@@ -27,7 +27,7 @@ public class MusicController {
         return musicService.findOneBySinger(singer);
     }
 
-    @ParamCheck("music")
+    @ParamCheck("music < 13")
     @GetMapping("/music/find")
     public Object music(String music){
         return musicService.findByMusic(music);
@@ -39,7 +39,7 @@ public class MusicController {
         return musicDao.getFirstBySinger(str);
     }
 
-    @ParamCheck({"singer","music"})
+    @ParamCheck({"singer | music"})
     @GetMapping("/find/{singer}/{music}")
     public Object find(@PathVariable("singer") String singer, @PathVariable("music") String music){
         return musicDao.selectBySql(singer, music);
