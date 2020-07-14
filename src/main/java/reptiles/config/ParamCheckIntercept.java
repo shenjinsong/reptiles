@@ -41,7 +41,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
     private static Pattern OPR = Pattern.compile(OPR_EXPS);
 
-    private String requestParams = "";
+    private static final ThreadLocal<String> threadLocal = new ThreadLocal<>();
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -74,7 +74,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
         // 检查参数
         boolean checkSuccess = this.checkReqParams(paramCheck, servletRequest, isRequestBody);
-
+        System.out.println("threadLocal 变量取值：" + threadLocal.get());
         if (!checkSuccess) {
             log.info("参数不正确");
             this.recordErrMsg();
@@ -94,8 +94,9 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         if (isRequestBody) {
             return this.checkReqBodyParams(paramCheck, request);
         } else {
-            requestParams = JSON.toJSONString(request.getParameterMap());
-            JSONObject jsonObject = JSON.parseObject(requestParams);
+            String jsonStr = JSON.toJSONString(request.getParameterMap());
+            threadLocal.set(jsonStr);
+            JSONObject jsonObject = JSON.parseObject(jsonStr);
             return checkParam(paramCheck, jsonObject);
         }
     }
@@ -110,9 +111,11 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
 
             // 将请求中的请求体通过流读成字符
-            requestParams = bufferedReader.lines().collect(Collectors.joining());
+            String jsonStr = bufferedReader.lines().collect(Collectors.joining());
+            // 将参数放到线程变量中。后面记录参数值需要
+            threadLocal.set(jsonStr);
             // 传入的json数据序列化为Json对象
-            jsonObject = JSONObject.parseObject(requestParams);
+            jsonObject = JSONObject.parseObject(jsonStr);
 
         } catch (Exception e) {
             e.printStackTrace();
