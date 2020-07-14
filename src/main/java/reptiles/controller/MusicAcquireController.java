@@ -17,7 +17,7 @@ public class MusicAcquireController {
     @Resource
     KuwoMusicAcquireService musicAcquireService;
 
-    @ParamCheck("singer - 1")
+    @ParamCheck("id - 2")
     @PostMapping("/music")
     public Object searchMusic(@RequestBody MusicEntity musicEntity) {
         return musicAcquireService.searchMusic(musicEntity.getSinger(), musicEntity.getMusic());
