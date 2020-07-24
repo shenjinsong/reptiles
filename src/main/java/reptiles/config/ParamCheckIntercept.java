@@ -200,8 +200,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         } else if (obj instanceof JSONArray) {
             JSONArray jsonArray = (JSONArray) obj;
             for (Object o : jsonArray) {
-                System.out.println(o);
-                if (ObjectUtils.isEmpty(o)) {
+                if(containErrorValue(o)){
                     return true;
                 }
             }

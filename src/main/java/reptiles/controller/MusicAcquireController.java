@@ -6,6 +6,7 @@ import reptiles.pojo.MusicEntity;
 import reptiles.service.KuwoMusicAcquireService;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @Auther: 大叔
@@ -17,7 +18,7 @@ public class MusicAcquireController {
     @Resource
     KuwoMusicAcquireService musicAcquireService;
 
-    @ParamCheck("id - 2")
+    @ParamCheck("id")
     @PostMapping("/music")
     public Object searchMusic(@RequestBody MusicEntity musicEntity) {
         return musicAcquireService.searchMusic(musicEntity.getSinger(), musicEntity.getMusic());
@@ -28,9 +29,9 @@ public class MusicAcquireController {
         return musicAcquireService.getMusicByMusicId(musicId);
     }
 
-    @ParamCheck({"name | bangId", "name - 8"})
+    @ParamCheck({"name | bangId | test"})
     @GetMapping("/rankList")
-    public void List4Rank(String name, String bangId) {
+    public void List4Rank(List<String> name) {
         //musicAcquireService.List4Rank(name, bangId);
     }
 
