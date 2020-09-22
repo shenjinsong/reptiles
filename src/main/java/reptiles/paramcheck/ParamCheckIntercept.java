@@ -1,28 +1,27 @@
-package reptiles.config;
+package reptiles.paramcheck;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import reptiles.paramcheck.annotation.ParamCheck;
+import reptiles.paramcheck.handler.ErrorResultHandler;
+import reptiles.paramcheck.util.SpringContextUtil;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -47,6 +46,23 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
     private static final ThreadLocal<String> threadLocal = new ThreadLocal<>();
 
     private static ExecutorService executor = Executors.newSingleThreadExecutor();
+
+    private static ErrorResultHandler errorResultHandler;
+
+
+    private static synchronized ErrorResultHandler errorResultHandler() {
+
+        if (errorResultHandler == null) {
+            try{
+                errorResultHandler = SpringContextUtil.getBean(ErrorResultHandler.class);
+            }catch (NoSuchBeanDefinitionException e){
+                log.error("ParamCheck lacks the error result handling implementation class and needs to implement the ErrorResultHandler interface");
+                throw e;
+            }
+        }
+
+        return errorResultHandler;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -85,9 +101,8 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         // 检查参数
         boolean checkSuccess = this.checkReqParams(paramCheck, servletRequest, isRequestBody);
         if (!checkSuccess) {
-            executor.execute(() -> recordErrLog(threadLocal.get(), request, paramCheck));
-            this.responseOut(response);
-
+            executor.execute(() -> errorResultHandler().recordErrLog(threadLocal.get(), request, paramCheck));
+            errorResultHandler().responseOut(response);
             return false;
         }
         log.info("参数校验通过");
@@ -205,29 +220,4 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         return length != null && obj.toString().length() > length;
     }
 
-
-    /**
-     * 回写给客户端
-     *
-     * @param response
-     * @throws IOException
-     */
-    private void responseOut(HttpServletResponse response) throws IOException {
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setStatus(HttpStatus.PRECONDITION_FAILED.value());
-        response.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json; charset=utf-8");
-        PrintWriter out = response.getWriter();
-        Map<String, String> map = new HashMap<>(1);
-        map.put("code", "999999");
-        map.put("msg", "缺少必要参数");
-        String json = JSONObject.toJSON(map).toString();
-        out.write(json);
-        out.flush();
-        out.close();
-    }
-
-    private void recordErrLog(String param, HttpServletRequest request, ParamCheck paramCheck) {
-
-    }
 }

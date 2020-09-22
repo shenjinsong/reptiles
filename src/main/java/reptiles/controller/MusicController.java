@@ -3,7 +3,7 @@ package reptiles.controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import reptiles.config.ParamCheck;
+import reptiles.paramcheck.annotation.ParamCheck;
 import reptiles.dao.MusicDao;
 import reptiles.service.MusicService;
 

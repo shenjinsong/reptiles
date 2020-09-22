@@ -1,4 +1,4 @@
-package reptiles.config;
+package reptiles.paramcheck.annotation;
 
 import java.lang.annotation.*;
 

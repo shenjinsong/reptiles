@@ -1,7 +1,7 @@
 package reptiles.controller;
 
 import org.springframework.web.bind.annotation.*;
-import reptiles.config.ParamCheck;
+import reptiles.paramcheck.annotation.ParamCheck;
 import reptiles.pojo.MusicEntity;
 import reptiles.service.KuwoMusicAcquireService;
 

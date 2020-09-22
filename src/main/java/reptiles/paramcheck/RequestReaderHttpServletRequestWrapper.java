@@ -1,4 +1,4 @@
-package reptiles.config;
+package reptiles.paramcheck;
 
 import org.springframework.util.StreamUtils;
 
