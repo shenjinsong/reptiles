@@ -20,8 +20,11 @@ import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -43,11 +46,18 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
     private static final ThreadLocal<String> threadLocal = new ThreadLocal<>();
 
+    private static ExecutorService executor = Executors.newSingleThreadExecutor();
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
+        if(!handler.getClass().isAssignableFrom(HandlerMethod.class)){
+            return true;
+        }
+
         HandlerMethod handlerMethod = (HandlerMethod) handler;
         Method method = handlerMethod.getMethod();
+
         // 判断是有@PramCheck 注解和注解中是否存在需要校验的字段， 没有直接返回
         ParamCheck paramCheck = method.getAnnotation(ParamCheck.class);
         if (paramCheck == null || ObjectUtils.isEmpty(paramCheck.value())) {
@@ -74,19 +84,17 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
         // 检查参数
         boolean checkSuccess = this.checkReqParams(paramCheck, servletRequest, isRequestBody);
-        System.out.println("threadLocal 变量取值：" + threadLocal.get());
         if (!checkSuccess) {
-            log.info("参数不正确");
-            this.recordErrMsg();
+            executor.execute(() -> recordErrLog(threadLocal.get(), request, paramCheck));
             this.responseOut(response);
+
             return false;
         }
         log.info("参数校验通过");
         return true;
-
     }
 
-    // 参数校验通过返回：true
+
     private boolean checkReqParams(ParamCheck paramCheck, ServletRequest request, boolean isRequestBody) {
 
         log.info("校验的参数：" + JSON.toJSONString(paramCheck.value()));
@@ -101,7 +109,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         }
     }
 
-    // 检查通过返回：true
+
     private boolean checkReqBodyParams(ParamCheck paramCheck, ServletRequest servletRequest) {
 
         JSONObject jsonObject = null;
@@ -128,86 +136,75 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         return checkParam(paramCheck, jsonObject);
     }
 
-    // 检查通过返回：true
+
     private boolean checkParam(ParamCheck paramCheck, JSONObject jsonObject) {
         for (String checkStr : paramCheck.value()) {
             if (invalid(OPR.matcher(checkStr).find(), checkStr, jsonObject)) {
+                log.warn("参数校验：{} 不通过, 参数：{}", checkStr, jsonObject.toJSONString());
                 return false;
             }
         }
         return true;
     }
 
-    // 参数不合法： true
+
     private boolean invalid(boolean containOpr, String checkStr, JSONObject param) {
         // 包含运算符做特殊检验
         checkStr = checkStr.replaceAll(" ", "");
         if (containOpr) {
             String[] checkStrs = checkStr.split(OPR_EXPS);
             if (checkStr.contains("|")) {
-                for (String str : checkStrs) {
-                    if (!containErrorValue(param.get(str))) {
-                        return false;
-                    }
-                }
-                return true;
+                return Arrays.stream(checkStrs).allMatch(str -> containErrorValue(param.get(str), null));
 
             } else if (checkStr.contains("-")) {
                 String[] val = checkStr.split("-");
                 String field = val[0];
-                String length = val[1];
+                Integer length = null;
+                try {
+                    length = Integer.valueOf(val[1]);
+                }catch (Exception e){
+                    log.warn("@ParamCheck '字符长度限制'使用方法[{}]错误, 校验不生效", checkStr);
+                }
+
                 Object o = param.get(field);
-                String par;
+
                 if (o instanceof JSONArray) {
                     JSONArray o1 = (JSONArray) o;
-                    par = o1.get(0).toString();
+                    // 数组时逐个判断
+                    Integer finalLength = length;
+                    return o1.stream().anyMatch(o2 -> containErrorValue(o2, finalLength));
                 } else {
-                    par = param.getString(field);
+                    return containErrorValue(param.getString(field), length);
                 }
 
-                try {
-                    // 校验长度、校验是否合法
-                    if (containErrorValue(par) || par.length() > Integer.valueOf(length)) {
-                        log.warn(field + " 字符超过长度: " + length + "; 或者参数不合法");
-                        return true;
-                    }
-                    return false;
-
-                } catch (Exception e) {
-                    log.error("@ParamCheck Parameter configuration error：" + checkStr + " , please check the grammar! Specifies the length usage :  value - 10");
-                    return true;
-                }
             }
             return true;
 
         } else {
-            return containErrorValue(param.get(checkStr));
+            return containErrorValue(param.get(checkStr), null);
         }
     }
 
-
-    /**
-     * 校验参数是否无效
-     * 是否非空、null、underfined
-     *
-     * @param obj
-     * @return
-     */
-    private static boolean containErrorValue(Object obj) {
-
+    private static boolean containErrorValue(Object obj, Integer length) {
+        log.info("校验参数值：" + JSON.toJSONString(obj) + "，长度：" + length);
         if (ObjectUtils.isEmpty(obj)) {
             return true;
         } else if (obj instanceof JSONArray) {
             JSONArray jsonArray = (JSONArray) obj;
             for (Object o : jsonArray) {
-                if(containErrorValue(o)){
+                if (containErrorValue(o, length)) {
                     return true;
                 }
             }
         }
 
-        return ERROR_VALUE.matcher(JSON.toJSONString(obj).toLowerCase()).find();
+        if (ERROR_VALUE.matcher(JSON.toJSONString(obj).toLowerCase()).find()){
+            return true;
+        }
+
+        return length != null && obj.toString().length() > length;
     }
+
 
     /**
      * 回写给客户端
@@ -230,7 +227,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         out.close();
     }
 
-    private void recordErrMsg() {
-        // TODO 记录错误信息
+    private void recordErrLog(String param, HttpServletRequest request, ParamCheck paramCheck) {
+
     }
 }
