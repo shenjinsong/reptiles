@@ -1,12 +1,12 @@
 package reptiles.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
 import reptiles.paramcheck.handler.ErrorResultHandler;
-import reptiles.paramcheck.annotation.ParamCheck;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -17,11 +17,16 @@ import java.util.Map;
  * @Auther: わらい
  * @Time: 2020/9/22 16:27
  */
-@Service
-public class ErrorResultHandlerImpl implements ErrorResultHandler{
+@Slf4j
+@Configuration
+public class ErrorResultHandlerImpl extends ErrorResultHandler{
+
+    @Resource
+    private HttpServletResponse response;
 
     @Override
-    public void responseOut(HttpServletResponse response) throws IOException {
+    public void handler(String param, String[] checkFields) throws IOException {
+
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setStatus(HttpStatus.PRECONDITION_FAILED.value());
         response.setCharacterEncoding("UTF-8");
@@ -34,11 +39,5 @@ public class ErrorResultHandlerImpl implements ErrorResultHandler{
         out.write(json);
         out.flush();
         out.close();
-    }
-
-    @Override
-    public void recordErrLog(String param, HttpServletRequest request, ParamCheck paramCheck) {
-        System.out.println("实现类的recordErrLog : " + Thread.currentThread().getId());
-
     }
 }

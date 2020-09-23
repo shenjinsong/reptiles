@@ -22,8 +22,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -45,8 +43,6 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
     private static final ThreadLocal<String> threadLocal = new ThreadLocal<>();
 
-    private static ExecutorService executor = Executors.newSingleThreadExecutor();
-
     private static ErrorResultHandler errorResultHandler;
 
 
@@ -56,8 +52,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
             try{
                 errorResultHandler = SpringContextUtil.getBean(ErrorResultHandler.class);
             }catch (NoSuchBeanDefinitionException e){
-                log.error("ParamCheck lacks the error result handling implementation class and needs to implement the ErrorResultHandler interface");
-                throw e;
+                log.warn("ParamCheck lacks the error result handling implementation class and needs to implement the ErrorResultHandler interface");
             }
         }
 
@@ -101,8 +96,11 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         // 检查参数
         boolean checkSuccess = this.checkReqParams(paramCheck, servletRequest, isRequestBody);
         if (!checkSuccess) {
-            executor.execute(() -> errorResultHandler().recordErrLog(threadLocal.get(), request, paramCheck));
-            errorResultHandler().responseOut(response);
+            ErrorResultHandler errorResultHandler = errorResultHandler();
+            if (errorResultHandler!= null){
+                errorResultHandler.handler(threadLocal.get(), paramCheck.value());
+            }
+            threadLocal.remove();
             return false;
         }
         log.info("参数校验通过");
