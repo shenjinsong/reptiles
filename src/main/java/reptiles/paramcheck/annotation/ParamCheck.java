@@ -1,7 +1,5 @@
 package reptiles.paramcheck.annotation;
 
-import reptiles.paramcheck.handler.ErrorResultHandler;
-
 import java.lang.annotation.*;
 
 /**
@@ -13,7 +11,5 @@ import java.lang.annotation.*;
 public @interface ParamCheck {
 
     String[] value() default {};
-
-    Class<ErrorResultHandler> handlerClass() default ErrorResultHandler.class;
 
 }
