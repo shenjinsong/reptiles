@@ -46,11 +46,11 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
     private static ErrorResultHandler errorResultHandler;
 
 
-    private static synchronized ErrorResultHandler errorResultHandler() {
+    private static synchronized ErrorResultHandler errorResultHandler(Class<ErrorResultHandler> cls) {
 
         if (errorResultHandler == null) {
             try{
-                errorResultHandler = SpringContextUtil.getBean(ErrorResultHandler.class);
+                errorResultHandler = SpringContextUtil.getBean(cls);
             }catch (NoSuchBeanDefinitionException e){
                 log.warn("ParamCheck lacks the error result handling implementation class and needs to implement the ErrorResultHandler interface");
             }
@@ -96,7 +96,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         // 检查参数
         boolean checkSuccess = this.checkReqParams(paramCheck, servletRequest, isRequestBody);
         if (!checkSuccess) {
-            ErrorResultHandler errorResultHandler = errorResultHandler();
+            ErrorResultHandler errorResultHandler = errorResultHandler(paramCheck.handlerClass());
             if (errorResultHandler!= null){
                 errorResultHandler.handler(threadLocal.get(), paramCheck.value());
             }
