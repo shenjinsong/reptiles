@@ -3,14 +3,14 @@ package reptiles.paramcheck;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import reptiles.paramcheck.annotation.ParamCheck;
-import reptiles.paramcheck.handler.ErrorResultHandler;
+import reptiles.paramcheck.configurer.ErrorResultHandlerConfigurer;
 import reptiles.paramcheck.util.SpringContextUtil;
 
 import javax.servlet.ServletRequest;
@@ -22,6 +22,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -31,9 +32,9 @@ import java.util.stream.Collectors;
  * @author わらい
  * @date 2020/04/20
  */
-@Slf4j
 public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
+    private static Logger log = Logger.getLogger(ParamCheckIntercept.class.getName());
 
     private static Pattern ERROR_VALUE = Pattern.compile("null|undefined");
 
@@ -43,26 +44,21 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
 
     private static final ThreadLocal<String> threadLocal = new ThreadLocal<>();
 
-    private static ErrorResultHandler errorResultHandler;
+    private static ErrorResultHandlerConfigurer errorResultHandler;
 
-
-    private static synchronized ErrorResultHandler errorResultHandler() {
-
-        if (errorResultHandler == null) {
-            try{
-                errorResultHandler = SpringContextUtil.getBean(ErrorResultHandler.class);
-            }catch (NoSuchBeanDefinitionException e){
-                log.warn("ParamCheck lacks the error result handling implementation class and needs to implement the ErrorResultHandler interface");
-            }
+    static {
+        try {
+            errorResultHandler = SpringContextUtil.getBean(ErrorResultHandlerConfigurer.class);
+            log.info("Initializing ErrorResultHandler processor");
+        } catch (Exception e) {
+            throw new NoSuchBeanDefinitionException("ParamCheck lacks the error result handling implementation class and needs to implement the ErrorResultHandler interface");
         }
-
-        return errorResultHandler;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-        if(!handler.getClass().isAssignableFrom(HandlerMethod.class)){
+        if (!handler.getClass().isAssignableFrom(HandlerMethod.class)) {
             return true;
         }
 
@@ -96,21 +92,16 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
         // 检查参数
         boolean checkSuccess = this.checkReqParams(paramCheck, servletRequest, isRequestBody);
         if (!checkSuccess) {
-            ErrorResultHandler errorResultHandler = errorResultHandler();
-            if (errorResultHandler!= null){
-                errorResultHandler.handler(threadLocal.get(), paramCheck.value());
-            }
+            errorResultHandler.handler(threadLocal.get(), paramCheck.value());
             threadLocal.remove();
             return false;
         }
-        log.info("参数校验通过");
         return true;
     }
 
 
     private boolean checkReqParams(ParamCheck paramCheck, ServletRequest request, boolean isRequestBody) {
 
-        log.info("校验的参数：" + JSON.toJSONString(paramCheck.value()));
         // 链接中包含参数，和请求体中参数校验过程
         if (isRequestBody) {
             return this.checkReqBodyParams(paramCheck, request);
@@ -153,7 +144,6 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
     private boolean checkParam(ParamCheck paramCheck, JSONObject jsonObject) {
         for (String checkStr : paramCheck.value()) {
             if (invalid(OPR.matcher(checkStr).find(), checkStr, jsonObject)) {
-                log.warn("参数校验：{} 不通过, 参数：{}", checkStr, jsonObject.toJSONString());
                 return false;
             }
         }
@@ -175,8 +165,8 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
                 Integer length = null;
                 try {
                     length = Integer.valueOf(val[1]);
-                }catch (Exception e){
-                    log.warn("@ParamCheck '字符长度限制'使用方法[{}]错误, 校验不生效", checkStr);
+                } catch (Exception e) {
+                    log.warning("@ParamCheck '字符长度限制'使用方法[" + checkStr + "]错误, 校验不生效");
                 }
 
                 Object o = param.get(field);
@@ -199,7 +189,6 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
     }
 
     private static boolean containErrorValue(Object obj, Integer length) {
-        log.info("校验参数值：" + JSON.toJSONString(obj) + "，长度：" + length);
         if (ObjectUtils.isEmpty(obj)) {
             return true;
         } else if (obj instanceof JSONArray) {
@@ -211,7 +200,7 @@ public class ParamCheckIntercept extends HandlerInterceptorAdapter {
             }
         }
 
-        if (ERROR_VALUE.matcher(JSON.toJSONString(obj).toLowerCase()).find()){
+        if (ERROR_VALUE.matcher(JSON.toJSONString(obj).toLowerCase()).find()) {
             return true;
         }
 

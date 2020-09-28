@@ -33,15 +33,15 @@ public class MusicController {
         return musicService.findByMusic(music);
     }
 
-    @ParamCheck("str")
-    @GetMapping("/find")
-    public Object find(String str){
-        return musicDao.getFirstBySinger(str);
-    }
+//    @ParamCheck("str")
+//    @GetMapping("/find")
+//    public Object find(String str){
+//        return musicDao.getFirstBySinger(str);
+//    }
 
     @ParamCheck({"singer | music"})
-    @GetMapping("/find/{singer}/{music}")
-    public Object find(@PathVariable("singer") String singer, @PathVariable("music") String music){
+    @GetMapping("/find/")
+    public Object find(String singer, String music){
         return musicDao.selectBySql(singer, music);
     }
 
