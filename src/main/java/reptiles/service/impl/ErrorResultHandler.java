@@ -23,6 +23,5 @@ public class ErrorResultHandler extends ErrorResultHandlerConfigurer {
         map.put("code", "999999");
         map.put("msg", "请求参数错误");
         super.handler(map, HttpStatus.PRECONDITION_FAILED);
-//        super.handler(param, checkFields);
     }
 }
