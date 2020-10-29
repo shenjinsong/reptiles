@@ -1,4 +1,4 @@
-package reptiles;
+package shenjinsong.reptiles;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 import java.nio.charset.StandardCharsets;
 
 @SpringBootApplication
-@ComponentScan(basePackages = {"com", "reptiles"})
+@ComponentScan(basePackages = {"shenjinsong", "com"})
 public class ReptilesApplication {
 
     public static void main(String[] args) {
