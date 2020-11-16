@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * @Auther: わらい
  * @Time: 2020/10/15 16:32
@@ -22,13 +24,15 @@ public class TestController {
 
     @ParamCheck("test|test1")
     @GetMapping("/get")
-    public String tee(String test, String test1){
+    public String tee(String test, String test1, HttpServletRequest request){
+        String ipAddr = IpUtil.getIpAddr(request);
         return test + test1;
     }
 
-    @ParamCheck({"val ~ 18", "oar", "sisis"})
+    @ParamCheck({"val ~ 1", "oar", "sisis <2"})
     @PostMapping("/test2")
     public String twtiw(@RequestBody TestVO testVO){
+
         return testVO.getVal();
     }
 

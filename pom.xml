@@ -37,11 +37,18 @@
 			<artifactId>jsoup</artifactId>
 			<version>1.11.3</version>
 		</dependency>
+		<!-- ↓↓↓ 参数校验需要用到2个jar包 ↓↓↓-->
 		<dependency>
 			<groupId>com.warai</groupId>
 			<artifactId>paramcheck</artifactId>
 			<version>0.1</version>
 		</dependency>
+		<dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+			<version>0.9.12</version>
+		</dependency>
+		<!-- ↑↑↑ 参数校验需要用到2个jar包 ↑↑↑-->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>

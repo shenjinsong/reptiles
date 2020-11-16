@@ -1,5 +1,6 @@
 package shenjinsong.reptiles.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.warai.paramcheck.ErrorResultHandler;
 import com.warai.paramcheck.Operator;
 import com.warai.paramcheck.annotation.ParamCheck;
@@ -14,11 +15,7 @@ import java.util.List;
 public class CustomErrorResultHandler extends ErrorResultHandler {
 
     @Override
-    public void handler(List<String> badFields, ParamCheck paramCheck) throws IOException {
-        for (String badField : badFields) {
-            String[] split = badField.split(Operator.OPR_EXPS);
-            System.out.println();
-        }
-        super.handler(badFields, paramCheck);
+    public void handler(JSONObject params, List<String> badFields, ParamCheck paramCheck) throws IOException {
+        super.handler(params, badFields, paramCheck);
     }
 }
